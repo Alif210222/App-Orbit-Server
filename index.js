@@ -33,6 +33,30 @@ async function run() {
 
 
 
+//PRODUCT GET API 
+
+app.get("/products", async(req,res) =>{
+    try{
+    const userEmail = req.query.email;
+    const options ={
+                sort:{createdAt:-1},
+
+            };
+    const query = userEmail ? {ownerEmail:userEmail}: {};
+    const result = await productCollection.find(query,options).toArray()
+    res.send(result)
+        } catch(error){
+             console.error("Error fetching parcels:" , error);
+             res.status(500).send({message : "Failed to get parcels"})
+        }
+
+
+} )
+
+
+
+
+// PRODUCT POST API 
     app.post("/products" , async(req,res) =>{
         try {
         const product = req.body;
