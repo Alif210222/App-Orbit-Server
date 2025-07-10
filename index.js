@@ -11,7 +11,7 @@ app.use(cors())
 
 
 
-const { MongoClient, ServerApiVersion } = require('mongodb');
+const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.bkye2zi.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0`;
 
 // Create a MongoClient with a MongoClientOptions object to set the Stable API version
@@ -31,9 +31,10 @@ async function run() {
     const db = client.db("app_orbit");
     const productCollection = db.collection("products")
 
+    
+//---------------------------------------------------------------------All product related api 
 
-
-//PRODUCT GET API 
+//PRODUCT GET API  by email
 
 app.get("/products", async(req,res) =>{
     try{
@@ -53,7 +54,14 @@ app.get("/products", async(req,res) =>{
 
 } )
 
+// get single product  by id
 
+app.get("/productDetails/:id",async(req,res) =>{
+    const id = req.params.id;
+    const query = {_id: new ObjectId(id)}
+    const result = await productCollection.findOne(query)
+    res.send(result)
+})
 
 
 // PRODUCT POST API 
@@ -69,6 +77,77 @@ app.get("/products", async(req,res) =>{
             res.status(500).send({message:"Failed to Create product data"})
          }
     })
+
+
+
+    // seller  product update api 
+  app.put("/updateProduct/:id", async (req, res) => {
+  const id = req.params.id;
+  const updateData = req.body;
+
+  try {
+    // ❗ Remove _id if it exists in the update data
+    if ('_id' in updateData) {
+      delete updateData._id;
+    }
+
+    const updateDoc = {
+      $set: updateData,
+    };
+
+    const filter = { _id: new ObjectId(id) };
+    const result = await productCollection.updateOne(filter, updateDoc);
+
+    res.send(result);
+  } catch (error) {
+    console.log("Error update Product:", error);
+    res.status(500).send({ message: "Failed to update product data" });
+  }
+});
+
+
+
+    // product delete api 
+
+    app.delete("/deleteProduct/:id", async(req,res) =>{
+        const id = req.params.id;
+        const filter = {_id: new ObjectId(id)}
+        const result = await productCollection.deleteOne(filter)
+        res.send(result)
+
+    })
+
+     // modaretor update product status : 
+
+     app.patch("/update-status/:id",async(req,res)=>{
+        const id= req.params.id;
+        const {product_status} = req.body;
+
+          if (!["accepted", "rejected"].includes(product_status)) {
+             return res.status(400).send({ message: "Invalid status" });
+          }
+
+        try{
+          const filter = {_id: new ObjectId(id)}
+          const updateDoc = {
+            $set:{
+                product_status,
+            }
+          }
+          const result = await productCollection.updateOne(filter,updateDoc)
+          res.send(result)
+        }
+        catch (error) {
+               console.error("Error updating product status:", error);
+               res.status(500).send({ message: "Failed to update product status." });
+           }
+     } )
+
+
+
+
+
+
 
 
 
