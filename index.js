@@ -64,6 +64,61 @@ async function run() {
          res.send(result)
  })
 
+
+ // --------------------------------------------------------------------featured data get api 
+
+ app.get('/featured-products', async (req, res) => {
+  try {
+    const featured = await productCollection
+      .find({ featured_status: 'featured', product_status: 'accepted' })
+      .sort({ createdAt: -1 }) // latest first
+      .toArray();
+
+    res.send(featured);
+  } catch (error) {
+    console.error('Error fetching featured products:', error);
+    res.status(500).send({ message: 'Failed to load featured products' });
+  }
+});
+
+// featured section  =====>>>> voted cound add and update 
+
+app.patch('/upvote/:id', async (req, res) => {
+  const productId = req.params.id;
+  const { userEmail } = req.body;
+
+  try {
+    const product = await productCollection.findOne({ _id: new ObjectId(productId) });
+
+    // Check if user already voted
+    if (product?.voted_users?.includes(userEmail)) {
+      return res.send({ message: "Already voted", modifiedCount: 0 });
+    }
+
+    // Prepare vote increment logic
+    const updateDoc = {
+      $inc: { vote_count: 1 }, // increment vote_count by 1
+      $addToSet: { voted_users: userEmail }, // add userEmail only if not exists
+    };
+
+    const result = await productCollection.updateOne(
+      { _id: new ObjectId(productId) },
+      updateDoc
+    );
+
+    res.send(result);
+  } catch (error) {
+    console.error("Vote error:", error);
+    res.status(500).send({ message: "Vote failed" });
+  }
+});
+
+
+
+
+
+
+
 //---------------------------------------------------------------------All product related api 
 
 //PRODUCT GET API  by email
@@ -175,6 +230,32 @@ app.get("/productDetails/:id",async(req,res) =>{
            }
      } )
 
+
+     // modaretor product featured api 
+
+      app.patch("/make-featured/:id",async(req,res)=>{
+        const id= req.params.id;
+        const {featured_status} = req.body;
+
+          if (!["featured"].includes(featured_status)) {
+             return res.status(400).send({ message: "Invalid status" });
+          }
+
+        try{
+          const filter = {_id: new ObjectId(id)}
+          const updateDoc = {
+            $set:{
+                featured_status,
+            }
+          }
+          const result = await productCollection.updateOne(filter,updateDoc)
+          res.send(result)
+        }
+        catch (error) {
+               console.error("Error updating product status:", error);
+               res.status(500).send({ message: "Failed to update product status." });
+           }
+     } )
 
 
 
