@@ -30,8 +30,26 @@ async function run() {
 
     const db = client.db("app_orbit");
     const productCollection = db.collection("products")
+    const userCollection = db.collection("users")
 
-    
+// --------------------------------------------------------------------All user api 
+
+// user data save in database 
+ app.post("/users" , async(req,res) =>{
+ 
+    const userInfo = req.body;
+    const result = await userCollection.insertOne(userInfo)
+    res.send(result)
+ })
+ 
+ // user get api 
+ app.get("/users",async(req,res) =>{
+    const result = await userCollection.find().toArray()
+    res.send(result)
+ })
+
+ 
+
 //---------------------------------------------------------------------All product related api 
 
 //PRODUCT GET API  by email
