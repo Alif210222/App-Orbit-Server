@@ -48,7 +48,21 @@ async function run() {
     res.send(result)
  })
 
- 
+ // user role update api create 
+ app.patch("/users/:id/role" , async(req,res) =>{
+    const id = req.params.id;
+    const {role} = req.body;
+
+    if(!["admin", "user","moderator"].includes(role)){
+          return res.status(400).send({message:"invalid role"})
+         }
+
+         const result = await userCollection.updateOne(
+            {_id:new ObjectId(id)},
+            {$set:{role}}
+         )
+         res.send(result)
+ })
 
 //---------------------------------------------------------------------All product related api 
 
