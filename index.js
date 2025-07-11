@@ -70,7 +70,7 @@ async function run() {
  app.get('/featured-products', async (req, res) => {
   try {
     const featured = await productCollection
-      .find({ featured_status: 'featured', product_status: 'accepted' })
+      .find({ featured_status: 'featured' })
       .sort({ createdAt: -1 }) // latest first
       .toArray();
 
@@ -114,6 +114,10 @@ app.patch('/upvote/:id', async (req, res) => {
 });
 
 
+
+// DETAILS SECTION VOTE COUNT 
+
+app.patch("/report/:id" , async)
 
 
 
