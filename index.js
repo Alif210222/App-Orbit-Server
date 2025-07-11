@@ -31,8 +31,9 @@ async function run() {
     const db = client.db("app_orbit");
     const productCollection = db.collection("products")
     const userCollection = db.collection("users")
+    const reviewCollection = db.collection("reviews")
 
-// --------------------------------------------------------------------All user api 
+// --------------------------------------------------------------------    All user api 
 
 // user data save in database 
  app.post("/users" , async(req,res) =>{
@@ -65,7 +66,7 @@ async function run() {
  })
 
 
- // --------------------------------------------------------------------featured data get api 
+ // --------------------------------------------------------------------    featured data get api 
 
  app.get('/featured-products', async (req, res) => {
   try {
@@ -115,7 +116,7 @@ app.patch('/upvote/:id', async (req, res) => {
 
 
 
-// DETAILS SECTION VOTE COUNT 
+// DETAILS SECTION VOTE COUNT patch req.
 
 app.patch("/report/:id" , async(req,res) =>{
     const id = req.params.id;
@@ -155,7 +156,31 @@ app.patch("/report/:id" , async(req,res) =>{
 
 })
 
+//-------------------------------------------------------------------  product review api 
 
+app.post("/reviews",async(req,res) =>{
+    const review = req.body;
+     try {
+    const result = await reviewCollection.insertOne(review);
+    res.send(result); // contains insertedId
+  } catch (error) {
+    console.error("Error saving review:", error);
+    res.status(500).send({ message: "Failed to post review" });
+  }
+})
+
+// review get api 
+
+app.get("/reviews/:productId" , async(req,res) =>{
+    const {productId} = req.params;
+    try{
+        const reviews = await reviewCollection.find({productId}).sort({createdAt:-1}).toArray()
+        res.send(reviews)
+    }catch(error){
+          console.error('Failed to get reviews', error);
+          res.status(500).send({ message: 'Server error' });
+    }
+})
 
 
 
