@@ -117,7 +117,43 @@ app.patch('/upvote/:id', async (req, res) => {
 
 // DETAILS SECTION VOTE COUNT 
 
-app.patch("/report/:id" , async)
+app.patch("/report/:id" , async(req,res) =>{
+    const id = req.params.id;
+    const {report_status} =req.body;
+    const {userEmail} = req.body
+
+      if (!["reported"].includes(report_status)) {
+             return res.status(400).send({ message: "Invalid status" });
+          }
+
+
+           try {
+            const product = await productCollection.findOne({ _id: new ObjectId(id) });
+
+    // Check if user already voted
+    if (product?.reported_users?.includes(userEmail)) {
+      return res.send({ message: "Already reported", modifiedCount: 0 });
+    }
+
+    // Prepare vote increment logic
+    const updateDoc = {
+      $set: { report_status: "reported" }, // increment vote_count by 1
+      $addToSet: { reported_users: userEmail }, // add userEmail only if not exists
+    };
+
+    const result = await productCollection.updateOne(
+      { _id: new ObjectId(id) },
+      updateDoc
+    );
+
+    res.send(result);
+  } catch (error) {
+    console.error("Vote error:", error);
+    res.status(500).send({ message: "Vote failed" });
+  }
+
+
+})
 
 
 
