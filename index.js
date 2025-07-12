@@ -68,6 +68,7 @@ async function run() {
 
  // --------------------------------------------------------------------    featured data get api 
 
+ 
  app.get('/featured-products', async (req, res) => {
   try {
     const featured = await productCollection
