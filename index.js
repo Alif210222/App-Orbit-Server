@@ -201,10 +201,10 @@ app.get('/trending-products', async (req, res) => {
 //---------------------------------------------------------------------All product related api 
 
 
-// all product get & search functionallity added
+// all ACCEPETED product get & search functionallity added
 
-// products route
-app.get('/products', async (req, res) => {
+
+app.get('/alProducts', async (req, res) => {
   try {
     const search = req.query.search || '';
     const page = parseInt(req.query.page) || 1;
@@ -235,27 +235,40 @@ app.get('/products', async (req, res) => {
   }
 });
 
+// ALL PRODUCT GET API 
+
+app.get("/reviewProducts" , async(req,res) =>{
+    const result = await productCollection.find().toArray()
+    res.send(result)
+})
 
 
 //PRODUCT GET API  by email
 
-app.get("/products", async(req,res) =>{
-    try{
-    const userEmail = req.query.email;
-    const options ={
-                sort:{createdAt:-1},
+app.get("/products", async (req, res) => {
+  const userEmail = req.query.email;
 
-            };
-    const query = userEmail ? {ownerEmail:userEmail}: {};
-    const result = await productCollection.find(query,options).toArray()
-    res.send(result)
-        } catch(error){
-             console.error("Error fetching parcels:" , error);
-             res.status(500).send({message : "Failed to get parcels"})
-        }
+  if (!userEmail) {
+    return res.status(400).send({ message: 'Email is required' });
+  }
 
+  try {
+    const query = {
+      ownerEmail: { $regex: new RegExp(`^${userEmail}$`, 'i') }, // case-insensitive
+    };
 
-} )
+    const result = await productCollection
+      .find(query)
+      .sort({ createdAt: -1 }) // latest products first
+      .toArray();
+
+    res.send(result);
+  } catch (error) {
+    console.error("Error fetching products:", error);
+    res.status(500).send({ message: "Failed to get products" });
+  }
+});
+
 
 // get single product  by id
 
@@ -374,6 +387,29 @@ app.get("/productDetails/:id",async(req,res) =>{
      } )
 
 
+
+
+
+     // admin pie chart data get api 
+
+     app.get('/dashboard-stats', async (req, res) => {
+  try {
+    const acceptedCount = await productCollection.countDocuments({ product_status: "accepted" });
+    const pendingCount = await productCollection.countDocuments({ product_status: "pending" });
+    const reviewCount = await reviewCollection.estimatedDocumentCount();
+    const userCount = await userCollection.estimatedDocumentCount();
+
+    res.send({
+      accepted: acceptedCount,
+      pending: pendingCount,
+      reviews: reviewCount,
+      users: userCount
+    });
+  } catch (error) {
+    console.error('Dashboard stats error', error);
+    res.status(500).send({ message: "Failed to load stats" });
+  }
+});
 
 
 
