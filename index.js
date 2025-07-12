@@ -182,9 +182,27 @@ app.get("/reviews/:productId" , async(req,res) =>{
     }
 })
 
+//---------------------------------------------------------------------trending product get api 
+
+app.get('/trending-products', async (req, res) => {
+  try {
+    const products = await productCollection
+      .find({ product_status: 'accepted' })
+      .sort({ vote_count: -1 })
+      .toArray();
+    res.send(products);
+  } catch (error) {
+    console.error('Error fetching trending products:', error);
+    res.status(500).send({ message: 'Server error' });
+  }
+});
 
 
 //---------------------------------------------------------------------All product related api 
+
+
+// all product get & search functionallity added
+
 
 //PRODUCT GET API  by email
 
