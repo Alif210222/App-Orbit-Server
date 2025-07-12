@@ -203,6 +203,39 @@ app.get('/trending-products', async (req, res) => {
 
 // all product get & search functionallity added
 
+// products route
+app.get('/products', async (req, res) => {
+  try {
+    const search = req.query.search || '';
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 6;
+    const skip = (page - 1) * limit;
+
+    // Search by tag (case-insensitive)
+    const query = {
+      product_status: 'accepted',
+      tags: { $regex: search, $options: 'i' }
+    };
+
+    // Get total count for pagination
+    const total = await productCollection.countDocuments(query);
+
+    // Fetch paginated results
+    const products = await productCollection
+      .find(query)
+      .sort({ createdAt: -1 }) // newest first
+      .skip(skip)
+      .limit(limit)
+      .toArray();
+
+    res.send({ total, products });
+  } catch (err) {
+    console.error('Failed to fetch products:', err);
+    res.status(500).send({ message: 'Internal server error' });
+  }
+});
+
+
 
 //PRODUCT GET API  by email
 
