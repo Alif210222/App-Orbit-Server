@@ -62,6 +62,28 @@ app.post('/create-payment-intent', async (req, res) => {
     const result = await userCollection.insertOne(userInfo)
     res.send(result)
  })
+
+ // get userdata when i add some product ==> user verifued or not 
+
+ app.get('/userData/:email', async (req, res) => {
+  const email = req.params.email;
+
+//   if (!userEmail) {
+//     return res.status(400).send({ message: 'Email is required' });
+//   }
+
+  try {
+    const user = await userCollection.findOne({ email: email });
+    if (!user) {
+      return res.status(404).send({ message: 'User not found' });
+    }
+    res.send(user);
+  } catch (error) {
+    console.error("Error fetching user:", error);
+    res.status(500).send({ message: "Failed to get user" });
+  }
+});
+
  
  //all user get api 
  app.get("/users",async(req,res) =>{
@@ -70,7 +92,7 @@ app.post('/create-payment-intent', async (req, res) => {
  })
 
 
- // after membership subscription ==>>   user data get api for knowing status 
+ // after membership subscription ==>>   user data get api for knowing membership status 
 
  app.get("/membershipUser/:email", async(req,res) =>{
     const email = req.params.email;
@@ -96,7 +118,7 @@ app.post('/create-payment-intent', async (req, res) => {
  })
 
 
-//  // after subscription user membership status update 
+ // after subscription user membership status update 
 
  app.patch("/user/membership-status/:email", async (req, res) => {
   const email = req.params.email;
@@ -246,7 +268,7 @@ app.get('/trending-products', async (req, res) => {
 //---------------------------------------------------------------------All product related api 
 
 
-// a normal user when add data then need some product data ==>> from this api 
+// a normal user when add data then need some product data {how much product he add} ==>> from this api 
 
 app.get("/productsData", async (req, res) => {
   const userEmail = req.query.email;
