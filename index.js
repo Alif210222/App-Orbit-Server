@@ -246,6 +246,30 @@ app.get('/trending-products', async (req, res) => {
 //---------------------------------------------------------------------All product related api 
 
 
+// a normal user when add data then need some product data ==>> from this api 
+
+app.get("/productsData", async (req, res) => {
+  const userEmail = req.query.email;
+
+  if (!userEmail) {
+    return res.status(400).send({ message: 'Email is required' });
+  }
+
+  try {
+    const query = { ownerEmail: userEmail };
+    const options = {
+      sort: { createdAt: -1 }
+    };
+
+    const result = await productCollection.find(query, options).toArray();
+    res.send(result);
+  } catch (error) {
+    console.error("Error fetching products:", error);
+    res.status(500).send({ message: "Failed to get products" });
+  }
+});
+
+
 // all ACCEPETED product get & search functionallity added
 
 
