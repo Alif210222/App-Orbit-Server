@@ -64,6 +64,34 @@ app.post("/googleUsers" , async(req,res) =>{
     res.send(result)
  })
 
+// role baser user get api 
+app.get("/userRole/:email/role" ,async(req,res) =>{
+    const email = req.params.email;
+    // 1️⃣ Validate the email
+  if (!email) {
+    return res.status(400).send({ message: "Email is required." });
+  }
+
+  try {
+    // 2️⃣ Search for user in the collection
+    const user = await userCollection.findOne({ email });
+
+    // 3️⃣ If no user found
+    if (!user) {
+      return res.status(404).send({ message: "User not found." });
+    }
+
+    // 4️⃣ Return role
+    res.send({ role: user.role || "user" });
+
+  } catch (error) {
+    console.error("Error fetching user role:", error);
+    res.status(500).send({ message: "Internal server error." });
+  }
+
+})
+
+
 
 
 
