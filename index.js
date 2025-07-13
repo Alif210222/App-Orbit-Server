@@ -34,6 +34,7 @@ async function run() {
     const productCollection = db.collection("products")
     const userCollection = db.collection("users")
     const reviewCollection = db.collection("reviews")
+    const couponsCollection = db.collection("coupon")
 
 
 
@@ -252,7 +253,16 @@ app.get('/reported-products', async (req, res) => {
 
 // reported product dellete api 
 
-
+app.delete('/deleteReportProduct/:id', async (req, res) => {
+  const id = req.params.id;
+  try {
+    const result = await productCollection.deleteOne({ _id: new ObjectId(id) });
+    res.send(result);
+  } catch (error) {
+    console.error('Error deleting product:', error);
+    res.status(500).send({ message: 'Failed to delete product' });
+  }
+});
 
 
 //-------------------------------------------------------------------  product review api 
@@ -534,6 +544,49 @@ app.get("/productDetails/:id",async(req,res) =>{
   }
 });
 
+// ------------------------------------------------------------admin coupon related api 
+
+//home page coupon data gate
+app.get('/homepageCoupons', async (req, res) => {
+  const result = await couponsCollection.find().sort({ createdAt: -1 }).toArray();
+  res.send(result);
+});
+
+
+
+
+
+app.get('/coupons', async (req, res) => {
+  const result = await couponsCollection.find().sort({ createdAt: -1 }).toArray();
+  res.send(result);
+});
+
+// post coupon
+app.post('/coupons', async (req, res) => {
+  const newCoupon = req.body;
+  newCoupon.createdAt = new Date();
+  const result = await couponsCollection.insertOne(newCoupon);
+  res.send(result);
+});
+
+// PATCH update a coupon
+app.patch('/coupons/:id', async (req, res) => {
+  const { id } = req.params;
+  const updated = req.body;
+  const result = await couponsCollection.updateOne(
+    { _id: new ObjectId(id) },
+    { $set: updated }
+  );
+  res.send(result);
+});
+
+
+// DELETE coupon
+app.delete('/coupons/:id', async (req, res) => {
+  const { id } = req.params;
+  const result = await couponsCollection.deleteOne({ _id: new ObjectId(id) });
+  res.send(result);
+});
 
 
 
