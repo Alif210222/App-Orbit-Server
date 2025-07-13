@@ -9,6 +9,8 @@ app.use(express.json())
 app.use(cors())
 
 
+const stripe = require('stripe')(process.env.PAYMENT_GATEWAY_KEY); 
+
 
 
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
@@ -33,6 +35,24 @@ async function run() {
     const userCollection = db.collection("users")
     const reviewCollection = db.collection("reviews")
 
+
+
+
+//---------------------------------------------------------------------payment related api 
+app.post('/create-payment-intent', async (req, res) => {
+  const { amount } = req.body;
+  const paymentIntent = await stripe.paymentIntents.create({
+    amount: amount * 100, // cents
+    currency: "usd",
+    payment_method_types: ["card"],
+  });
+  res.json({ clientSecret: paymentIntent.client_secret });
+});
+
+
+
+
+
 // --------------------------------------------------------------------    All user api 
 
 // user data save in database 
@@ -43,11 +63,21 @@ async function run() {
     res.send(result)
  })
  
- // user get api 
+ //all user get api 
  app.get("/users",async(req,res) =>{
     const result = await userCollection.find().toArray()
     res.send(result)
  })
+
+
+ // after membership subscription ==>>   user data get api for knowing status 
+
+ app.get("/membershipUser/:email", async(req,res) =>{
+    const email = req.params.email;
+    const result = await userCollection.findOne({email})
+    res.send(result)
+ })
+
 
  // user role update api create 
  app.patch("/users/:id/role" , async(req,res) =>{
@@ -66,9 +96,23 @@ async function run() {
  })
 
 
+//  // after subscription user membership status update 
+
+//  app.patch("/user/membership-status/:email", async (req, res) => {
+//   const email = req.params.email;
+//   const updateDoc = {
+//     $set: {
+//       membership_status: "verified",
+//     },
+//   };
+//   const result = await userCollection.updateOne({ email }, updateDoc);
+//   res.send(result);
+// });
+
+
  // --------------------------------------------------------------------    featured data get api 
 
- 
+
  app.get('/featured-products', async (req, res) => {
   try {
     const featured = await productCollection
