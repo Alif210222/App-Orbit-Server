@@ -55,6 +55,17 @@ app.post('/create-payment-intent', async (req, res) => {
 
 // --------------------------------------------------------------------    All user api 
 
+// GOOGLE BASED USER LOGIN DATA SAVE IN DATABASE 
+app.post("/googleUsers" , async(req,res) =>{
+ 
+    const userInfo = req.body;
+    const result = await userCollection.insertOne(userInfo)
+    res.send(result)
+ })
+
+
+
+
 // user data save in database 
  app.post("/users" , async(req,res) =>{
  
@@ -222,6 +233,27 @@ app.patch("/report/:id" , async(req,res) =>{
 
 
 })
+
+//--------------------------------------------------------------------- reported peoduct get api 
+
+app.get('/reported-products', async (req, res) => {
+  try {
+    const reported = await productCollection
+      .find({ report_status: 'reported' })
+      .sort({ createdAt: -1 })
+      .toArray();
+    res.send(reported);
+  } catch (error) {
+    console.error('Error fetching reported products:', error);
+    res.status(500).send({ message: 'Failed to load reported products' });
+  }
+});
+
+
+// reported product dellete api 
+
+
+
 
 //-------------------------------------------------------------------  product review api 
 
