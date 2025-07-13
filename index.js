@@ -98,16 +98,16 @@ app.post('/create-payment-intent', async (req, res) => {
 
 //  // after subscription user membership status update 
 
-//  app.patch("/user/membership-status/:email", async (req, res) => {
-//   const email = req.params.email;
-//   const updateDoc = {
-//     $set: {
-//       membership_status: "verified",
-//     },
-//   };
-//   const result = await userCollection.updateOne({ email }, updateDoc);
-//   res.send(result);
-// });
+ app.patch("/user/membership-status/:email", async (req, res) => {
+  const email = req.params.email;
+  const updateDoc = {
+    $set: {
+      membership_status: "verified",
+    },
+  };
+  const result = await userCollection.updateOne({ email }, updateDoc);
+  res.send(result);
+});
 
 
  // --------------------------------------------------------------------    featured data get api 
