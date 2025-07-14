@@ -3,17 +3,25 @@ const express = require('express')
 const cors = require("cors")
 const app = express()
 const port =process.env.PORT || 4000
+const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
+const admin = require("firebase-admin");
+
+const decoded = Buffer.from(process.env.FB_SERVICE_KEY, "base64").toString("utf8") 
+const serviceAccount  = JSON.parse(decoded)
+
+// const serviceAccount = require("./firebase-admin-service-key.json");
 
 
 app.use(express.json())
 app.use(cors())
 
 
+// stripe payment key
 const stripe = require('stripe')(process.env.PAYMENT_GATEWAY_KEY); 
 
 
 
-const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
+//connect to mongodb
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.bkye2zi.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0`;
 
 // Create a MongoClient with a MongoClientOptions object to set the Stable API version
@@ -24,6 +32,49 @@ const client = new MongoClient(uri, {
     deprecationErrors: true,
   }
 });
+
+
+
+
+// VERIFY FIREBASE TOKEN
+admin.initializeApp({
+  credential: admin.credential.cert(serviceAccount)
+});
+
+const verifyFirebaseToken = async (req,res,next) =>{
+      //  console.log("hreaders token in the middleware" ,  req.headers)
+      const authHeader = req?.headers?.authorization;
+      if(!authHeader){
+        // console.log("error  astece")
+        return res.status(401).send({ message: "unauthorized access !  ?"})
+      }
+       
+      const token = authHeader.split(' ')[1] 
+
+    //   console.log("token in the midleware", token)
+      
+    //    next();
+      if(!token){
+        return res.status(401).send({ message: "unauthorized access !  ?"})
+      }
+
+
+      try{
+        const decoded = await admin.auth().verifyIdToken(token)
+        console.log("decoded token" , decoded)
+        req.decoded= decoded;
+        next();
+      }
+
+      catch(error){
+        return res.status(403).send({message: "forbidden access !!!!"})
+      }    
+      
+}
+
+
+
+
 
 async function run() {
   try {
@@ -65,7 +116,7 @@ app.post("/googleUsers" , async(req,res) =>{
  })
 
 // role baser user get api 
-app.get("/userRole/:email/role" ,async(req,res) =>{
+app.get("/userRole/:email/role" , async(req,res) =>{
     const email = req.params.email;
     // 1️⃣ Validate the email
   if (!email) {
@@ -126,7 +177,7 @@ app.get("/userRole/:email/role" ,async(req,res) =>{
 
  
  //all user get api 
- app.get("/users",async(req,res) =>{
+ app.get("/users",verifyFirebaseToken ,async(req,res) =>{
     const result = await userCollection.find().toArray()
     res.send(result)
  })
