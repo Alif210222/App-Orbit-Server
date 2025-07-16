@@ -55,13 +55,13 @@ const verifyFirebaseToken = async (req,res,next) =>{
       
     //    next();
       if(!token){
-        return res.status(401).send({ message: "unauthorized access !  ?"})
+        return res.status(401).send({ message: "unauthorized access !!!  ?"})
       }
 
 
       try{
         const decoded = await admin.auth().verifyIdToken(token)
-        // console.log("decoded token" , decoded)
+        console.log("decoded token" , decoded)
         req.decoded= decoded;
         next();
       }
@@ -79,7 +79,7 @@ const verifyFirebaseToken = async (req,res,next) =>{
 async function run() {
   try {
     // Connect the client to the server	(optional starting in v4.7)
-    await client.connect();
+    // await client.connect();
 
     const db = client.db("app_orbit");
     const productCollection = db.collection("products")
@@ -177,7 +177,7 @@ app.get("/userRole/:email/role" , async(req,res) =>{
 
  
  //all user get api 
- app.get("/users",verifyFirebaseToken ,async(req,res) =>{
+ app.get("/users",verifyFirebaseToken, async(req,res) =>{
     const result = await userCollection.find().toArray()
     res.send(result)
  })
@@ -316,7 +316,7 @@ app.patch("/report/:id" , async(req,res) =>{
 
 //--------------------------------------------------------------------- reported peoduct get api 
 
-app.get('/reported-products', async (req, res) => {
+app.get('/reported-products',verifyFirebaseToken, async (req, res) => {
   try {
     const reported = await productCollection
       .find({ report_status: 'reported' })
@@ -342,7 +342,6 @@ app.delete('/deleteReportProduct/:id', async (req, res) => {
     res.status(500).send({ message: 'Failed to delete product' });
   }
 });
-
 
 //-------------------------------------------------------------------  product review api 
 
@@ -449,7 +448,7 @@ app.get('/alProducts', async (req, res) => {
 
 // ALL PRODUCT GET API 
 
-app.get("/reviewProducts" , async(req,res) =>{
+app.get("/reviewProducts" ,verifyFirebaseToken,  async(req,res) =>{
     const result = await productCollection.find().toArray()
     res.send(result)
 })
@@ -457,7 +456,7 @@ app.get("/reviewProducts" , async(req,res) =>{
 
 //PRODUCT GET API  by email
 
-app.get("/products", async (req, res) => {
+app.get("/products",verifyFirebaseToken, async (req, res) => {
   const userEmail = req.query.email;
 
   if (!userEmail) {
@@ -484,7 +483,7 @@ app.get("/products", async (req, res) => {
 
 // get single product  by id
 
-app.get("/productDetails/:id",async(req,res) =>{
+app.get("/productDetails/:id",verifyFirebaseToken, async(req,res) =>{
     const id = req.params.id;
     const query = {_id: new ObjectId(id)}
     const result = await productCollection.findOne(query)
@@ -493,7 +492,7 @@ app.get("/productDetails/:id",async(req,res) =>{
 
 
 // PRODUCT POST API 
-    app.post("/products" , async(req,res) =>{
+    app.post("/products" ,verifyFirebaseToken,  async(req,res) =>{
         try {
         const product = req.body;
         const result = await productCollection.insertOne(product)
@@ -509,7 +508,7 @@ app.get("/productDetails/:id",async(req,res) =>{
 
 
     // seller  product update api 
-  app.put("/updateProduct/:id", async (req, res) => {
+  app.put("/updateProduct/:id",verifyFirebaseToken, async (req, res) => {
   const id = req.params.id;
   const updateData = req.body;
 
@@ -547,7 +546,7 @@ app.get("/productDetails/:id",async(req,res) =>{
 
      // modaretor update product status : 
 
-     app.patch("/update-status/:id",async(req,res)=>{
+     app.patch("/update-status/:id", async(req,res)=>{
         const id= req.params.id;
         const {product_status} = req.body;
 
@@ -574,7 +573,7 @@ app.get("/productDetails/:id",async(req,res) =>{
 
      // modaretor product featured api 
 
-      app.patch("/make-featured/:id",async(req,res)=>{
+      app.patch("/make-featured/:id", async(req,res)=>{
         const id= req.params.id;
         const {featured_status} = req.body;
 
@@ -635,13 +634,13 @@ app.get('/homepageCoupons', async (req, res) => {
 
 
 
-app.get('/coupons', async (req, res) => {
+app.get('/coupons',verifyFirebaseToken, async (req, res) => {
   const result = await couponsCollection.find().sort({ createdAt: -1 }).toArray();
   res.send(result);
 });
 
 // post coupon
-app.post('/coupons', async (req, res) => {
+app.post('/coupons',verifyFirebaseToken, async (req, res) => {
   const newCoupon = req.body;
   newCoupon.createdAt = new Date();
   const result = await couponsCollection.insertOne(newCoupon);
@@ -649,7 +648,7 @@ app.post('/coupons', async (req, res) => {
 });
 
 // PATCH update a coupon
-app.patch('/coupons/:id', async (req, res) => {
+app.patch('/coupons/:id',verifyFirebaseToken, async (req, res) => {
   const { id } = req.params;
   const updated = req.body;
   const result = await couponsCollection.updateOne(
@@ -672,7 +671,7 @@ app.delete('/coupons/:id', async (req, res) => {
 
 
     // Send a ping to confirm a successful connection
-    await client.db("admin").command({ ping: 1 });
+    // await client.db("admin").command({ ping: 1 });
     console.log("Pinged your deployment. You successfully connected to MongoDB!");
   } finally {
     // Ensures that the client will close when you finish/error
